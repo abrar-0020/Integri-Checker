@@ -73,6 +73,18 @@ Integri-Checker/
 ├── blockchain_data.pkl     # Stored blockchain data
 └── README.md               # This file
 
+⚠️ Windows Defender Warning
+When you run IntegriCheck.exe for the first time, Windows Defender SmartScreen may show a warning like:
+
+"Windows protected your PC"
+
+This is expected because the app is not signed with a verified certificate.
+To proceed:
+-Click More info
+-Click Run anyway
+
+✅ The application is safe to use.
+
 📄 License
 This project is open-source and free to use under the MIT License.
 
