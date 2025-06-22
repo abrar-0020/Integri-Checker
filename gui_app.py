@@ -2,10 +2,9 @@ import os
 import time
 import hashlib
 import pickle
-
 import datetime
 import ttkbootstrap as tb
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, Text, Toplevel  # <-- Use tk widgets here
 
 # Block class
 class Block:
@@ -58,40 +57,35 @@ class FileIntegrityApp:
         self.blockchain = Blockchain()
         self.blockchain.load_from_file()
 
-        # Define custom style for buttons with font
-        style = tb.Style()
-        button_font = ("Helvetica", 12, "bold")
-        style.configure('Custom.TButton', font=button_font)
-
         # Frame for buttons
         button_frame = tb.Frame(master)
         button_frame.pack(pady=10, fill="x")
 
-        tb.Button(button_frame, text="Add File", bootstyle="primary Custom.TButton", command=self.add_file, width=15).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Add Folder", bootstyle="primary Custom.TButton", command=self.add_folder, width=15).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Check Integrity", bootstyle="success Custom.TButton", command=self.check_integrity, width=18).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Export Report", bootstyle="info Custom.TButton", command=self.export_report, width=15).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Blockchain View", bootstyle="secondary Custom.TButton", command=self.open_blockchain_view, width=18).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Remove File", bootstyle="warning Custom.TButton", command=self.remove_file, width=15).pack(side="left", padx=5)
-        tb.Button(button_frame, text="Remove All Files", bootstyle="danger Custom.TButton", command=self.remove_all_files, width=18).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Add File", bootstyle="primary", command=self.add_file, width=15).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Add Folder", bootstyle="primary", command=self.add_folder, width=15).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Check Integrity", bootstyle="success", command=self.check_integrity, width=18).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Export Report", bootstyle="info", command=self.export_report, width=15).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Blockchain View", bootstyle="secondary", command=self.open_blockchain_view, width=18).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Remove File", bootstyle="warning", command=self.remove_file, width=15).pack(side="left", padx=5)
+        tb.Button(button_frame, text="Remove All Files", bootstyle="danger", command=self.remove_all_files, width=18).pack(side="left", padx=5)
 
         # Treeview for files
         tree_frame = tb.Frame(master)
         tree_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
+        from tkinter import ttk  # Must use base ttk for compatibility
         columns = ("Name", "Hash", "Status")
-        # Removed bootstyle="info" from Treeview
-        self.tree = tb.Treeview(tree_frame, columns=columns, show="headings")
+        self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
         for col in columns:
             self.tree.heading(col, text=col)
             if col == "Status":
-                self.tree.column(col, anchor="center", width=150)  # Center-align Status column
+                self.tree.column(col, anchor="center", width=150)
             elif col == "Hash":
-                self.tree.column(col, anchor="w", width=250)      # Left-align Hash column
+                self.tree.column(col, anchor="w", width=250)
             else:
-                self.tree.column(col, anchor="w", width=150)      # Left-align Name column
+                self.tree.column(col, anchor="w", width=150)
 
-        scrollbar = tb.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
         self.tree.pack(side="left", fill="both", expand=True)
@@ -104,17 +98,17 @@ class FileIntegrityApp:
             self.tree.insert("", "end", values=(os.path.basename(block.filename), block.file_hash, "UNCHANGED"))
 
     def add_file(self):
-        file_path = filedialog.askopenfilename()
+        file_path = filedialog.askopenfilename(parent=self.master)
         if not file_path:
             return
 
         if any(block.filename == file_path for block in self.blockchain.chain):
-            messagebox.showinfo("Info", "File already added.")
+            messagebox.showinfo("Info", "File already added.", parent=self.master)
             return
 
         file_hash = compute_file_hash(file_path)
         if file_hash is None:
-            messagebox.showerror("Error", "Failed to read file.")
+            messagebox.showerror("Error", "Failed to read file.", parent=self.master)
             return
 
         self.blockchain.add_block(file_path, file_hash)
@@ -122,7 +116,7 @@ class FileIntegrityApp:
         self.tree.insert("", "end", values=(os.path.basename(file_path), file_hash, "ADDED"))
 
     def add_folder(self):
-        folder_path = filedialog.askdirectory()
+        folder_path = filedialog.askdirectory(parent=self.master)
         if not folder_path:
             return
 
@@ -142,7 +136,7 @@ class FileIntegrityApp:
         if added_any:
             self.blockchain.save_to_file()
         else:
-            messagebox.showinfo("Info", "No new files added from folder.")
+            messagebox.showinfo("Info", "No new files added from folder.", parent=self.master)
 
     def check_integrity(self):
         for i, block in enumerate(self.blockchain.chain):
@@ -153,13 +147,13 @@ class FileIntegrityApp:
                 status = "UNCHANGED"
             else:
                 status = "TAMPERED"
-                messagebox.showwarning("Tampering Detected", f"File '{os.path.basename(block.filename)}' has been tampered.")
+                messagebox.showwarning("Tampering Detected", f"File '{os.path.basename(block.filename)}' has been tampered.", parent=self.master)
             self.tree.item(self.tree.get_children()[i], values=(os.path.basename(block.filename), block.file_hash, status))
 
     def remove_file(self):
         selected = self.tree.selection()
         if not selected:
-            messagebox.showinfo("Info", "Please select a file to remove.")
+            messagebox.showinfo("Info", "Please select a file to remove.", parent=self.master)
             return
 
         item_id = selected[0]
@@ -171,29 +165,30 @@ class FileIntegrityApp:
             del self.blockchain.chain[index_to_remove]
             self.blockchain.save_to_file()
             self.tree.delete(item_id)
-            messagebox.showinfo("Success", f"Removed '{filename}' from blockchain.")
+            messagebox.showinfo("Success", f"Removed '{filename}' from blockchain.", parent=self.master)
         else:
-            messagebox.showwarning("Warning", "File not found in blockchain.")
+            messagebox.showwarning("Warning", "File not found in blockchain.", parent=self.master)
 
     def remove_all_files(self):
-        if messagebox.askyesno("Confirm", "Are you sure you want to remove ALL files from the blockchain?"):
+        if messagebox.askyesno("Confirm", "Are you sure you want to remove ALL files from the blockchain?", parent=self.master):
             self.blockchain.chain.clear()
             self.blockchain.save_to_file()
             self.tree.delete(*self.tree.get_children())
-            messagebox.showinfo("Success", "All files removed from blockchain.")
+            messagebox.showinfo("Success", "All files removed from blockchain.", parent=self.master)
 
     def open_blockchain_view(self):
-        view_window = tb.Toplevel(self.master)
+        view_window = Toplevel(self.master)
         view_window.title("Blockchain Structure")
         view_window.geometry("600x500")
 
+        from tkinter import ttk
         text_frame = tb.Frame(view_window)
         text_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        scrollbar = tb.Scrollbar(text_frame)
+        scrollbar = ttk.Scrollbar(text_frame)
         scrollbar.pack(side="right", fill="y")
 
-        text_widget = tb.Text(text_frame, wrap="none", yscrollcommand=scrollbar.set, font=("Helvetica", 12))
+        text_widget = Text(text_frame, wrap="none", yscrollcommand=scrollbar.set, font=("Helvetica", 12))
         text_widget.pack(fill="both", expand=True)
         scrollbar.config(command=text_widget.yview)
 
@@ -212,7 +207,7 @@ class FileIntegrityApp:
         text_widget.config(state="disabled")
 
     def export_report(self):
-        export_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text File", "*.txt")])
+        export_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text File", "*.txt")], parent=self.master)
         if not export_path:
             return
         try:
@@ -221,9 +216,9 @@ class FileIntegrityApp:
                 for item_id in self.tree.get_children():
                     values = self.tree.item(item_id, "values")
                     f.write(f"{values[0]}\t{values[1]}\t{values[2]}\n")
-            messagebox.showinfo("Exported", f"Report saved to:\n{export_path}")
+            messagebox.showinfo("Exported", f"Report saved to:\n{export_path}", parent=self.master)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to export report.\n{e}")
+            messagebox.showerror("Error", f"Failed to export report.\n{e}", parent=self.master)
 
 if __name__ == "__main__":
     root = tb.Window(themename="superhero")
