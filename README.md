@@ -88,5 +88,5 @@ To proceed:
 📄 License
 This project is open-source and free to use under the MIT License.
 
-  ⚠️ Known Issue: On some systems, the file picker may not appear when clicking "Add Files." Working on a fix. Please test on Windows 10/11 with GUI
+
 
