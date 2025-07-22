@@ -39,7 +39,7 @@ Download as ZIP from GitHub:
 
 **Option 2:**  
 Clone with Git:
-```bash
+bash
 git clone https://github.com/abrar-0020/Integri-Checker.git
 
 Step 2: Prepare the Environment
@@ -85,8 +85,14 @@ To proceed:
 
 ✅ The application is safe to use.
 
-📄 License
-This project is open-source and free to use under the MIT License.
+---
+
+## ©️ License
+
+© 2025 Abrar. All rights reserved.
+
+This project is open for personal and educational use.  
+Do not resell or host as a commercial service without permission.
 
 
 
